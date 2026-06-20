@@ -1,0 +1,1592 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: NyayaSetu Legal Operating System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User profile operations
+  - name: dashboard
+    description: Dashboard data
+  - name: rights
+    description: Legal rights explorer
+  - name: complaints
+    description: Complaint generator
+  - name: documents
+    description: Document vault
+  - name: journeys
+    description: Guided legal journeys
+  - name: schemes
+    description: Government schemes
+  - name: learning
+    description: Legal learning hub
+  - name: legalaid
+    description: Find legal aid
+  - name: chat
+    description: AI legal assistant
+  - name: notifications
+    description: Notifications
+  - name: search
+    description: Global search
+  - name: admin
+    description: Admin panel
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+
+  # USER PROFILE
+  /users/profile:
+    get:
+      operationId: getProfile
+      tags: [users]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/change-password:
+    post:
+      operationId: changePassword
+      tags: [users]
+      summary: Change password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChangeInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # DASHBOARD
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics and activity
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  # RIGHTS EXPLORER
+  /rights:
+    get:
+      operationId: listRights
+      tags: [rights]
+      summary: List legal rights articles
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rights articles list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RightsListResponse"
+
+  /rights/categories:
+    get:
+      operationId: getRightsCategories
+      tags: [rights]
+      summary: Get all rights categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RightsCategory"
+
+  /rights/{id}:
+    get:
+      operationId: getRightsArticle
+      tags: [rights]
+      summary: Get a single rights article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rights article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RightsArticle"
+        "404":
+          description: Not found
+
+  # COMPLAINTS
+  /complaints/templates:
+    get:
+      operationId: listComplaintTemplates
+      tags: [complaints]
+      summary: List complaint templates by type
+      responses:
+        "200":
+          description: Templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplaintTemplate"
+
+  /complaints:
+    get:
+      operationId: listComplaints
+      tags: [complaints]
+      summary: List user's complaints
+      responses:
+        "200":
+          description: Complaints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+    post:
+      operationId: createComplaint
+      tags: [complaints]
+      summary: Create a new complaint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintInput"
+      responses:
+        "201":
+          description: Created complaint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+
+  /complaints/{id}:
+    get:
+      operationId: getComplaint
+      tags: [complaints]
+      summary: Get a complaint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Complaint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+    patch:
+      operationId: updateComplaint
+      tags: [complaints]
+      summary: Update complaint content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintUpdate"
+      responses:
+        "200":
+          description: Updated complaint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+    delete:
+      operationId: deleteComplaint
+      tags: [complaints]
+      summary: Delete a complaint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # DOCUMENT VAULT
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List user documents
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get document metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    patch:
+      operationId: updateDocument
+      tags: [documents]
+      summary: Rename or recategorize document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdate"
+      responses:
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # GUIDED LEGAL JOURNEYS
+  /journeys:
+    get:
+      operationId: listJourneys
+      tags: [journeys]
+      summary: List all available journeys
+      responses:
+        "200":
+          description: Journeys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Journey"
+
+  /journeys/{id}:
+    get:
+      operationId: getJourney
+      tags: [journeys]
+      summary: Get journey details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Journey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
+
+  /journeys/{id}/progress:
+    get:
+      operationId: getJourneyProgress
+      tags: [journeys]
+      summary: Get user progress for a journey
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneyProgress"
+    patch:
+      operationId: updateJourneyProgress
+      tags: [journeys]
+      summary: Update journey progress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneyProgressUpdate"
+      responses:
+        "200":
+          description: Updated progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneyProgress"
+
+  # GOVERNMENT SCHEMES
+  /schemes:
+    get:
+      operationId: listSchemes
+      tags: [schemes]
+      summary: List government schemes
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Schemes list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemesListResponse"
+
+  /schemes/{id}:
+    get:
+      operationId: getScheme
+      tags: [schemes]
+      summary: Get scheme details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Scheme
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+
+  # LEGAL LEARNING HUB
+  /learning:
+    get:
+      operationId: listLearningContent
+      tags: [learning]
+      summary: List learning content
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Learning content
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningContent"
+
+  /learning/{id}:
+    get:
+      operationId: getLearningContent
+      tags: [learning]
+      summary: Get learning content detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningContent"
+
+  /learning/{id}/bookmark:
+    post:
+      operationId: bookmarkContent
+      tags: [learning]
+      summary: Bookmark or unbookmark content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookmarkInput"
+      responses:
+        "200":
+          description: Bookmark result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /learning/bookmarks:
+    get:
+      operationId: listBookmarks
+      tags: [learning]
+      summary: List user's bookmarked content
+      responses:
+        "200":
+          description: Bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningContent"
+
+  # LEGAL AID
+  /legalaid:
+    get:
+      operationId: listLegalAid
+      tags: [legalaid]
+      summary: Search legal aid providers
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: area
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Legal aid providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LegalAidProvider"
+
+  /legalaid/{id}:
+    get:
+      operationId: getLegalAidProvider
+      tags: [legalaid]
+      summary: Get legal aid provider details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegalAidProvider"
+
+  # AI CHAT
+  /chat/sessions:
+    get:
+      operationId: listChatSessions
+      tags: [chat]
+      summary: List user's chat sessions
+      responses:
+        "200":
+          description: Sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatSession"
+    post:
+      operationId: createChatSession
+      tags: [chat]
+      summary: Create a new chat session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatSessionInput"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatSession"
+
+  /chat/sessions/{id}/messages:
+    get:
+      operationId: getChatMessages
+      tags: [chat]
+      summary: Get messages for a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message and get AI response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessage"
+
+  # NOTIFICATIONS
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List user notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationReadInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}:
+    delete:
+      operationId: deleteNotification
+      tags: [notifications]
+      summary: Delete a notification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /notifications/mark-all-read:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmptyInput"
+      responses:
+        "200":
+          description: Done
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # GLOBAL SEARCH
+  /search:
+    get:
+      operationId: globalSearch
+      tags: [search]
+      summary: Global search across all content
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+
+  # ADMIN
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Admin dashboard stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin)
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUsersResponse"
+
+  /admin/users/{id}:
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Delete a user (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    EmptyInput:
+      type: object
+      properties: {}
+
+    AuthResult:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required: [user, token]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        email:
+          type: string
+        mobile:
+          type: ["string", "null"]
+        aadhaar:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        preferredLanguage:
+          type: string
+        profilePhoto:
+          type: ["string", "null"]
+        role:
+          type: string
+        createdAt:
+          type: string
+      required: [id, fullName, email, preferredLanguage, role, createdAt]
+
+    RegisterInput:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        mobile:
+          type: string
+        password:
+          type: string
+      required: [fullName, email, password]
+
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        rememberMe:
+          type: boolean
+      required: [email, password]
+
+    ProfileUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        mobile:
+          type: string
+        aadhaar:
+          type: string
+        address:
+          type: string
+        preferredLanguage:
+          type: string
+        profilePhoto:
+          type: string
+
+    PasswordChangeInput:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+      required: [currentPassword, newPassword]
+
+    DashboardStats:
+      type: object
+      properties:
+        welcomeMessage:
+          type: string
+        totalDocuments:
+          type: integer
+        totalComplaints:
+          type: integer
+        activeJourneys:
+          type: integer
+        unreadNotifications:
+          type: integer
+        recentComplaints:
+          type: array
+          items:
+            $ref: "#/components/schemas/Complaint"
+        recentDocuments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        featuredSchemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scheme"
+        legalRightsHighlight:
+          type: array
+          items:
+            $ref: "#/components/schemas/RightsArticle"
+      required: [welcomeMessage, totalDocuments, totalComplaints, activeJourneys, unreadNotifications, recentComplaints, recentDocuments, recentActivity, featuredSchemes, legalRightsHighlight]
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+      required: [id, type, description, createdAt]
+
+    RightsCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        count:
+          type: integer
+      required: [id, name, icon, count]
+
+    RightsArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        relevantLaws:
+          type: array
+          items:
+            type: string
+        legalProvisions:
+          type: array
+          items:
+            type: string
+        governmentResources:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+      required: [id, title, summary, content, category, relevantLaws, legalProvisions, governmentResources, createdAt]
+
+    RightsListResponse:
+      type: object
+      properties:
+        articles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RightsArticle"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [articles, total, page, totalPages]
+
+    ComplaintTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ComplaintQuestion"
+      required: [id, type, title, description, questions]
+
+    ComplaintQuestion:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+        options:
+          type: ["array", "null"]
+          items:
+            type: string
+      required: [key, label, type, required]
+
+    Complaint:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+        answers:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, type, title, content, status, createdAt, updatedAt]
+
+    ComplaintInput:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        answers:
+          type: string
+        content:
+          type: string
+      required: [type, title, content]
+
+    ComplaintUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        originalName:
+          type: string
+        category:
+          type: ["string", "null"]
+        mimeType:
+          type: string
+        size:
+          type: integer
+        filePath:
+          type: string
+        createdAt:
+          type: string
+      required: [id, name, originalName, mimeType, size, filePath, createdAt]
+
+    DocumentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+
+    Journey:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        estimatedDays:
+          type: integer
+        eligibility:
+          type: string
+        requiredDocuments:
+          type: array
+          items:
+            type: string
+        applicableLaws:
+          type: array
+          items:
+            type: string
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/JourneyStep"
+      required: [id, title, description, category, estimatedDays, eligibility, requiredDocuments, applicableLaws, steps]
+
+    JourneyStep:
+      type: object
+      properties:
+        stepNumber:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        tips:
+          type: ["string", "null"]
+      required: [stepNumber, title, description]
+
+    JourneyProgress:
+      type: object
+      properties:
+        journeyId:
+          type: integer
+        currentStep:
+          type: integer
+        completedSteps:
+          type: array
+          items:
+            type: integer
+        completionPercent:
+          type: integer
+        startedAt:
+          type: ["string", "null"]
+        completedAt:
+          type: ["string", "null"]
+      required: [journeyId, currentStep, completedSteps, completionPercent]
+
+    JourneyProgressUpdate:
+      type: object
+      properties:
+        currentStep:
+          type: integer
+        completedSteps:
+          type: array
+          items:
+            type: integer
+      required: [currentStep, completedSteps]
+
+    Scheme:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        eligibility:
+          type: string
+        benefits:
+          type: string
+        requiredDocuments:
+          type: array
+          items:
+            type: string
+        applicationProcess:
+          type: string
+        officialLink:
+          type: ["string", "null"]
+        ministry:
+          type: string
+        createdAt:
+          type: string
+      required: [id, title, description, category, eligibility, benefits, requiredDocuments, applicationProcess, ministry, createdAt]
+
+    SchemesListResponse:
+      type: object
+      properties:
+        schemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scheme"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [schemes, total, page, totalPages]
+
+    LearningContent:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isBookmarked:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, title, summary, content, type, tags, isBookmarked, createdAt]
+
+    BookmarkInput:
+      type: object
+      properties:
+        bookmarked:
+          type: boolean
+      required: [bookmarked]
+
+    LegalAidProvider:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: ["string", "null"]
+        address:
+          type: string
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+        practiceAreas:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+        rating:
+          type: ["number", "null"]
+        description:
+          type: string
+      required: [id, name, type, city, state, address, practiceAreas, languages, description]
+
+    ChatSession:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        messageCount:
+          type: integer
+      required: [id, title, createdAt, updatedAt, messageCount]
+
+    ChatSessionInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required: [title]
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+      required: [id, sessionId, role, content, createdAt]
+
+    ChatMessageInput:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, type, title, message, isRead, createdAt]
+
+    NotificationReadInput:
+      type: object
+      properties:
+        isRead:
+          type: boolean
+      required: [isRead]
+
+    SearchResults:
+      type: object
+      properties:
+        rights:
+          type: array
+          items:
+            $ref: "#/components/schemas/RightsArticle"
+        schemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scheme"
+        complaints:
+          type: array
+          items:
+            $ref: "#/components/schemas/Complaint"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        learning:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningContent"
+      required: [rights, schemes, complaints, documents, learning]
+
+    AdminLoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalDocuments:
+          type: integer
+        totalComplaints:
+          type: integer
+        totalSessions:
+          type: integer
+        newUsersThisMonth:
+          type: integer
+        activeUsersToday:
+          type: integer
+        topComplaintTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountItem"
+        topRightsCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountItem"
+      required: [totalUsers, totalDocuments, totalComplaints, totalSessions, newUsersThisMonth, activeUsersToday, topComplaintTypes, topRightsCategories]
+
+    CountItem:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+      required: [label, count]
+
+    AdminUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [users, total, page, totalPages]
